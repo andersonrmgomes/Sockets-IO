@@ -2,10 +2,16 @@ import socket
 import os
 import threading
 import shutil
+import logging
+import time
 
 FILES_DIR = "_FILES"
 USERS_FILE = "users.txt"
 BACKUP_DIR = "backup"
+
+# Configuração do logging
+logging.basicConfig(filename="server.log", level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 
 def load_users(filename):
     users = {}
@@ -35,6 +41,7 @@ def handle_client(client_socket, address):
             if USERS[username] == password:
                 authenticated = True
                 client_socket.send("Autenticado!\n".encode())
+                logging.info(f"Cliente {address[0]}:{address[1]} - {username} - Autenticado")
 
                 user_dir = os.path.join(FILES_DIR, username)
                 if not os.path.exists(user_dir):
@@ -48,10 +55,14 @@ def handle_client(client_socket, address):
 
                         parts = command.split()
                         action = parts[0]
+                        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+                        logging.info(f"Cliente {address[0]}:{address[1]} - {username} - {command}")
 
                         if action == "CREATE":
                             filename = parts[1]
                             filepath = os.path.join(user_dir, filename)
+
                             if os.path.exists(filepath):
                                 client_socket.send(f"Erro: Arquivo {filename} já existe.\n".encode())
                             else:
@@ -59,6 +70,7 @@ def handle_client(client_socket, address):
                                     with open(filepath, "w") as f:
                                         pass
                                     client_socket.send(f"Arquivo {filename} criado com sucesso.\n".encode())
+                                    logging.info(f"Arquivo {filename} criado - {timestamp}")
                                 except Exception as e:
                                     client_socket.send(f"Erro ao criar arquivo: {e}\n".encode())
 
@@ -75,6 +87,7 @@ def handle_client(client_socket, address):
                                 with open(filepath, "a") as f:
                                     f.write(line + "\n")
                                 client_socket.send(f"Linha adicionada ao arquivo {filename}.\n".encode())
+                                logging.info(f"Linha adicionada a {filename} - {timestamp}")
                             except Exception as e:
                                 client_socket.send(f"Erro ao adicionar linha: {e}\n".encode())
 
@@ -83,6 +96,7 @@ def handle_client(client_socket, address):
                                 files = os.listdir(user_dir)
                                 file_list = "[ " + ", ".join(files) + " ]" if files else "[]"
                                 client_socket.send(f"Arquivos disponíveis: {file_list}\n".encode())
+                                logging.info(f"Lista de arquivos solicitada - {timestamp}")
                             except FileNotFoundError:
                                 client_socket.send("Diretório de arquivos não encontrado.\n".encode())
 
@@ -95,6 +109,7 @@ def handle_client(client_socket, address):
                             try:
                                 os.remove(filepath)
                                 client_socket.send(f"Arquivo {filename} deletado com sucesso.\n".encode())
+                                logging.info(f"Arquivo {filename} excluído - {timestamp}")
                             except Exception as e:
                                 client_socket.send(f"Erro ao deletar arquivo: {e}\n".encode())
 
@@ -102,24 +117,31 @@ def handle_client(client_socket, address):
                             try:
                                 shutil.copytree(FILES_DIR, os.path.join(BACKUP_DIR, FILES_DIR), dirs_exist_ok=True)
                                 client_socket.send(f"Backup realizado com sucesso em {BACKUP_DIR}.\n".encode())
+                                logging.info(f"Backup realizado - {timestamp}")
                             except Exception as e:
                                 client_socket.send(f"Erro ao realizar backup: {e}.\n".encode())
 
                         elif action == "EXIT":
+                            logging.info(f"Cliente {address[0]}:{address[1]} desconectado - {timestamp}")
                             break
                         else:
                             client_socket.send("Comando inválido.\n".encode())
 
                     except Exception as e:
                         print(f"Erro: {e}")
+                        logging.error(f"Erro: {e}")
                         break
+
             else:
                 client_socket.send("Senha incorreta!\n".encode())
+                logging.warning(f"Cliente {address[0]}:{address[1]} - {username} - Senha incorreta")
         else:
             client_socket.send("Usuário não encontrado!\n".encode())
+            logging.warning(f"Cliente {address[0]}:{address[1]} - {username} - Usuário não encontrado")
 
     print(f"[+] Conexão encerrada com {address[0]}:{address[1]}")
     client_socket.close()
+
 
 def main():
     HOST = "127.0.0.1"
@@ -131,7 +153,6 @@ def main():
     if not os.path.exists(FILES_DIR):
         os.makedirs(FILES_DIR)
 
-    # Cria o diretório de backup se não existir
     if not os.path.exists(BACKUP_DIR):
         os.makedirs(BACKUP_DIR)
 

@@ -1,0 +1,11 @@
+2024-11-05 15:02:28,168 - INFO - Cliente 127.0.0.1:38725 - usuario1 - Autenticado
+2024-11-05 15:02:36,376 - INFO - Cliente 127.0.0.1:38725 - usuario1 - CREATE teste.txt
+2024-11-05 15:02:36,377 - INFO - Arquivo teste.txt criado - 2024-11-05 15:02:36
+2024-11-05 15:02:59,772 - INFO - Cliente 127.0.0.1:38725 - usuario1 - ADD teste.txt Hello Word!
+2024-11-05 15:02:59,773 - INFO - Linha adicionada a teste.txt - 2024-11-05 15:02:59
+2024-11-05 15:03:05,875 - INFO - Cliente 127.0.0.1:38725 - usuario1 - LIST
+2024-11-05 15:03:05,876 - INFO - Lista de arquivos solicitada - 2024-11-05 15:03:05
+2024-11-05 15:03:09,745 - INFO - Cliente 127.0.0.1:38725 - usuario1 - BACKUP
+2024-11-05 15:03:09,748 - INFO - Backup realizado - 2024-11-05 15:03:09
+2024-11-05 15:03:19,598 - INFO - Cliente 127.0.0.1:38725 - usuario1 - DELETE teste.txt
+2024-11-05 15:03:19,599 - INFO - Arquivo teste.txt excluído - 2024-11-05 15:03:19
