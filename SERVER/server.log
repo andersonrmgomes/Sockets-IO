@@ -9,3 +9,5 @@
 2024-11-05 15:03:09,748 - INFO - Backup realizado - 2024-11-05 15:03:09
 2024-11-05 15:03:19,598 - INFO - Cliente 127.0.0.1:38725 - usuario1 - DELETE teste.txt
 2024-11-05 15:03:19,599 - INFO - Arquivo teste.txt excluído - 2024-11-05 15:03:19
+2024-11-05 15:12:44,339 - INFO - Cliente 127.0.0.1:38725 - usuario1 - EXIT
+2024-11-05 15:12:44,339 - INFO - Cliente 127.0.0.1:38725 desconectado - 2024-11-05 15:12:44
