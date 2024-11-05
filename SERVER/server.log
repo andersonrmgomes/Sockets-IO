@@ -11,3 +11,20 @@
 2024-11-05 15:03:19,599 - INFO - Arquivo teste.txt excluído - 2024-11-05 15:03:19
 2024-11-05 15:12:44,339 - INFO - Cliente 127.0.0.1:38725 - usuario1 - EXIT
 2024-11-05 15:12:44,339 - INFO - Cliente 127.0.0.1:38725 desconectado - 2024-11-05 15:12:44
+2024-11-05 15:19:19,474 - WARNING - Cliente 127.0.0.1:39462 - usuario12 - Usuário não encontrado
+2024-11-05 15:19:26,012 - INFO - Cliente 127.0.0.1:39473 - usuario1 - Autenticado
+2024-11-05 15:19:58,847 - INFO - Cliente 127.0.0.1:39473 - usuario1 - CREATE teste.zip
+2024-11-05 15:19:58,848 - INFO - Arquivo teste.zip criado - 2024-11-05 15:19:58
+2024-11-05 15:20:15,777 - INFO - Cliente 127.0.0.1:39473 - usuario1 - DELETE teste.zip
+2024-11-05 15:20:15,778 - INFO - Arquivo teste.zip excluído - 2024-11-05 15:20:15
+2024-11-05 15:20:25,008 - INFO - Cliente 127.0.0.1:39473 - usuario1 - CREATE teste.txt
+2024-11-05 15:20:25,009 - INFO - Arquivo teste.txt criado - 2024-11-05 15:20:25
+2024-11-05 15:20:41,022 - INFO - Cliente 127.0.0.1:39473 - usuario1 - ADD Hello Word!
+2024-11-05 15:20:54,281 - INFO - Cliente 127.0.0.1:39473 - usuario1 - ADD teste.txt Hello Word!
+2024-11-05 15:20:54,281 - INFO - Linha adicionada a teste.txt - 2024-11-05 15:20:54
+2024-11-05 15:21:03,661 - INFO - Cliente 127.0.0.1:39473 - usuario1 - BACKUP
+2024-11-05 15:21:03,664 - INFO - Backup realizado - 2024-11-05 15:21:03
+2024-11-05 15:21:16,239 - INFO - Cliente 127.0.0.1:39473 - usuario1 - DELETE teste.txt
+2024-11-05 15:21:16,239 - INFO - Arquivo teste.txt excluído - 2024-11-05 15:21:16
+2024-11-05 15:21:19,737 - INFO - Cliente 127.0.0.1:39473 - usuario1 - EXIT
+2024-11-05 15:21:19,737 - INFO - Cliente 127.0.0.1:39473 desconectado - 2024-11-05 15:21:19
