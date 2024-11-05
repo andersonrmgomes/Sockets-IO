@@ -11,7 +11,8 @@ def display_menu():
     print("2. ADD <nome_do_arquivo> <texto>")
     print("3. LIST")
     print("4. DELETE <nome_do_arquivo>")
-    print("5. EXIT")
+    print("5. BACKUP")
+    print("6. EXIT")
     print("------------")
 
 
@@ -22,10 +23,10 @@ def get_command():
 
         try:
             choice = int(choice)
-            if 1 <= choice <= 5:
+            if 1 <= choice <= 6:
                 return choice
             else:
-                print("Opção inválida. Escolha um número entre 1 e 5.")
+                print("Opção inválida. Escolha um número entre 1 e 6.")
         except ValueError:
             print("Entrada inválida. Digite um número.")
 
@@ -74,7 +75,6 @@ def main():
                 elif "Senha incorreta" in password_request:
                     pass  # Continua no loop se a senha estiver incorreta
 
-
             if authenticated:
                 while True:
                     choice = get_command()
@@ -82,7 +82,6 @@ def main():
                     if choice == 1:
                         filename = get_filename()
                         command = f"CREATE {filename}"
-
                     elif choice == 2:
                         filename = get_filename()
                         text = get_text_to_add()
@@ -92,13 +91,18 @@ def main():
                     elif choice == 4:
                         filename = get_filename()
                         command = f"DELETE {filename}"
-                    elif choice == 5:
+                    elif choice == 5:  # Comando BACKUP
+                        command = "BACKUP"
+                        client_socket.send(command.encode())
+                        response = client_socket.recv(1024).decode()
+                        print(response)
+                        continue  # Volta ao menu
+                    elif choice == 6:  # Comando EXIT
                         command = "EXIT"
+                        client_socket.send(command.encode())
+                        break  # Sai do loop
 
                     client_socket.send(command.encode())
-
-                    if command == "EXIT":
-                        break
 
                     response = client_socket.recv(1024).decode()
                     print(response)
