@@ -1,9 +1,11 @@
 import socket
 import os
 import threading
+import shutil
 
 FILES_DIR = "_FILES"
 USERS_FILE = "users.txt"
+BACKUP_DIR = "backup"
 
 def load_users(filename):
     users = {}
@@ -50,23 +52,29 @@ def handle_client(client_socket, address):
                         if action == "CREATE":
                             filename = parts[1]
                             filepath = os.path.join(user_dir, filename)
-                            try:
-                                with open(filepath, "w") as f:
-                                    pass
-                                client_socket.send(f"Arquivo {filename} criado com sucesso.\n".encode())
-                            except Exception as e:
-                                client_socket.send(f"Erro ao criar arquivo: {e}\n".encode())
+                            if os.path.exists(filepath):
+                                client_socket.send(f"Erro: Arquivo {filename} já existe.\n".encode())
+                            else:
+                                try:
+                                    with open(filepath, "w") as f:
+                                        pass
+                                    client_socket.send(f"Arquivo {filename} criado com sucesso.\n".encode())
+                                except Exception as e:
+                                    client_socket.send(f"Erro ao criar arquivo: {e}\n".encode())
 
                         elif action == "ADD":
                             filename = parts[1]
                             filepath = os.path.join(user_dir, filename)
                             line = " ".join(parts[2:])
+
+                            if not os.path.exists(filepath):
+                                client_socket.send(f"Erro: Arquivo {filename} não encontrado.\n".encode())
+                                continue
+
                             try:
                                 with open(filepath, "a") as f:
                                     f.write(line + "\n")
                                 client_socket.send(f"Linha adicionada ao arquivo {filename}.\n".encode())
-                            except FileNotFoundError:
-                                client_socket.send(f"Arquivo {filename} não encontrado.\n".encode())
                             except Exception as e:
                                 client_socket.send(f"Erro ao adicionar linha: {e}\n".encode())
 
@@ -81,13 +89,21 @@ def handle_client(client_socket, address):
                         elif action == "DELETE":
                             filename = parts[1]
                             filepath = os.path.join(user_dir, filename)
+                            if not os.path.exists(filepath):
+                                client_socket.send(f"Erro: Arquivo {filename} não encontrado.\n".encode())
+                                continue
                             try:
                                 os.remove(filepath)
                                 client_socket.send(f"Arquivo {filename} deletado com sucesso.\n".encode())
-                            except FileNotFoundError:
-                                client_socket.send(f"Arquivo {filename} não encontrado.\n".encode())
                             except Exception as e:
                                 client_socket.send(f"Erro ao deletar arquivo: {e}\n".encode())
+
+                        elif action == "BACKUP":
+                            try:
+                                shutil.copytree(FILES_DIR, os.path.join(BACKUP_DIR, FILES_DIR), dirs_exist_ok=True)
+                                client_socket.send(f"Backup realizado com sucesso em {BACKUP_DIR}.\n".encode())
+                            except Exception as e:
+                                client_socket.send(f"Erro ao realizar backup: {e}.\n".encode())
 
                         elif action == "EXIT":
                             break
@@ -102,7 +118,6 @@ def handle_client(client_socket, address):
         else:
             client_socket.send("Usuário não encontrado!\n".encode())
 
-
     print(f"[+] Conexão encerrada com {address[0]}:{address[1]}")
     client_socket.close()
 
@@ -115,6 +130,10 @@ def main():
 
     if not os.path.exists(FILES_DIR):
         os.makedirs(FILES_DIR)
+
+    # Cria o diretório de backup se não existir
+    if not os.path.exists(BACKUP_DIR):
+        os.makedirs(BACKUP_DIR)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((HOST, PORT))
