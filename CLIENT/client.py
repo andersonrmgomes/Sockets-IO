@@ -2,10 +2,8 @@ import sys
 import os
 import socket
 
-
 # Adiciona o diretório pai (TRABALHO-SOCKET) ao PYTHONPATH
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 
 def display_menu():
     print("\n--- Menu ---")
@@ -54,16 +52,30 @@ def main():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
             client_socket.connect((HOST, PORT))
 
-            password_request = client_socket.recv(1024).decode()
-            print(password_request, end="")
-            password = input()
-            client_socket.send(password.encode())
+            username = input("Usuário: ")
+            client_socket.send(username.encode())
 
-            auth_response = client_socket.recv(1024).decode()
-            print(auth_response)
+            authenticated = False
+            while not authenticated:
+                password_request = client_socket.recv(1024).decode()
+                print(password_request, end="")
 
-            if "Autenticado" in auth_response:
+                if "Usuário não encontrado" in password_request:
+                    break
 
+                if "Senha:" in password_request:
+                    password = input()
+                    client_socket.send(password.encode())
+
+                    auth_response = client_socket.recv(1024).decode()
+                    print(auth_response)
+                    if "Autenticado" in auth_response:
+                        authenticated = True
+                elif "Senha incorreta" in password_request:
+                    pass  # Continua no loop se a senha estiver incorreta
+
+
+            if authenticated:
                 while True:
                     choice = get_command()
 
@@ -83,7 +95,6 @@ def main():
                     elif choice == 5:
                         command = "EXIT"
 
-
                     client_socket.send(command.encode())
 
                     if command == "EXIT":
@@ -92,9 +103,9 @@ def main():
                     response = client_socket.recv(1024).decode()
                     print(response)
 
+
     except ConnectionRefusedError:
-        print(
-            "Erro: Não foi possível conectar ao servidor. Certifique-se de que o servidor está em execução.")
+        print("Erro: Não foi possível conectar ao servidor. Certifique-se de que o servidor está em execução.")
     except Exception as e:
         print(f"Erro: {e}")
 

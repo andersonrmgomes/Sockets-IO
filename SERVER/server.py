@@ -1,88 +1,117 @@
-# server/server.py
 import socket
 import os
 import threading
 
-FILES_DIR = "_FILES"  # Define o diretório de arquivos
+FILES_DIR = "_FILES"
+USERS_FILE = "users.txt"
+
+def load_users(filename):
+    users = {}
+    try:
+        with open(filename, "r") as f:
+            for line in f:
+                username, password = line.strip().split(":")
+                users[username] = password
+    except FileNotFoundError:
+        print(f"Arquivo de usuários '{filename}' não encontrado. Nenhum usuário carregado.")
+    return users
 
 def handle_client(client_socket, address):
     print(f"[+] Conexão recebida de {address[0]}:{address[1]}")
 
     authenticated = False
     while not authenticated:
-        client_socket.send("Senha: ".encode())
-        password = client_socket.recv(1024).decode().strip()
-        if password == "senha123":
-            authenticated = True
-            client_socket.send("Autenticado!\n".encode())
-        else:
-            client_socket.send("Senha incorreta!\n".encode())
+        client_socket.send("Usuário: ".encode())
+        username = client_socket.recv(1024).decode().strip()
+        print(f"Usuário recebido: {username}")
 
-    while True:
-        try:
-            command = client_socket.recv(1024).decode().strip()
-            if not command:
-                break
+        if username in USERS:
+            print("Usuário encontrado!")
+            client_socket.send("Senha: ".encode())
+            password = client_socket.recv(1024).decode().strip()
 
-            parts = command.split()
-            action = parts[0]
+            if USERS[username] == password:
+                authenticated = True
+                client_socket.send("Autenticado!\n".encode())
 
-            if action == "CREATE":
-                filename = os.path.join(FILES_DIR, parts[1])
-                try:
-                    with open(filename, "w") as f:
-                        pass
-                    client_socket.send(f"Arquivo {parts[1]} criado com sucesso.\n".encode())
-                except Exception as e:
-                    client_socket.send(f"Erro ao criar arquivo: {e}\n".encode())
+                user_dir = os.path.join(FILES_DIR, username)
+                if not os.path.exists(user_dir):
+                    os.makedirs(user_dir)
 
-            elif action == "ADD":
-                filename = os.path.join(FILES_DIR, parts[1])
-                line = " ".join(parts[2:])
-                try:
-                    with open(filename, "a") as f:
-                        f.write(line + "\n")
-                    client_socket.send(f"Linha adicionada ao arquivo {parts[1]}.\n".encode())
-                except FileNotFoundError:
-                    client_socket.send(f"Arquivo {parts[1]} não encontrado.\n".encode())
-                except Exception as e:
-                    client_socket.send(f"Erro ao adicionar linha: {e}\n".encode())
+                while True:
+                    try:
+                        command = client_socket.recv(1024).decode().strip()
+                        if not command:
+                            break
 
-            elif action == "LIST":
-                try:
-                    files = os.listdir(FILES_DIR)
-                    file_list = "[ " + ", ".join(files) + " ]" if files else "[]"
-                    client_socket.send(f"Arquivos disponíveis: {file_list}\n".encode())
-                except FileNotFoundError:
-                    client_socket.send("Diretório de arquivos não encontrado.\n".encode())
+                        parts = command.split()
+                        action = parts[0]
 
+                        if action == "CREATE":
+                            filename = parts[1]
+                            filepath = os.path.join(user_dir, filename)
+                            try:
+                                with open(filepath, "w") as f:
+                                    pass
+                                client_socket.send(f"Arquivo {filename} criado com sucesso.\n".encode())
+                            except Exception as e:
+                                client_socket.send(f"Erro ao criar arquivo: {e}\n".encode())
 
-            elif action == "DELETE":
-                filename = os.path.join(FILES_DIR, parts[1])
-                try:
-                    os.remove(filename)
-                    client_socket.send(f"Arquivo {parts[1]} deletado com sucesso.\n".encode())
-                except FileNotFoundError:
-                    client_socket.send(f"Arquivo {parts[1]} não encontrado.\n".encode())
-                except Exception as e:
-                    client_socket.send(f"Erro ao deletar arquivo: {e}\n".encode())
+                        elif action == "ADD":
+                            filename = parts[1]
+                            filepath = os.path.join(user_dir, filename)
+                            line = " ".join(parts[2:])
+                            try:
+                                with open(filepath, "a") as f:
+                                    f.write(line + "\n")
+                                client_socket.send(f"Linha adicionada ao arquivo {filename}.\n".encode())
+                            except FileNotFoundError:
+                                client_socket.send(f"Arquivo {filename} não encontrado.\n".encode())
+                            except Exception as e:
+                                client_socket.send(f"Erro ao adicionar linha: {e}\n".encode())
 
-            elif action == "EXIT":
-                break
+                        elif action == "LIST":
+                            try:
+                                files = os.listdir(user_dir)
+                                file_list = "[ " + ", ".join(files) + " ]" if files else "[]"
+                                client_socket.send(f"Arquivos disponíveis: {file_list}\n".encode())
+                            except FileNotFoundError:
+                                client_socket.send("Diretório de arquivos não encontrado.\n".encode())
+
+                        elif action == "DELETE":
+                            filename = parts[1]
+                            filepath = os.path.join(user_dir, filename)
+                            try:
+                                os.remove(filepath)
+                                client_socket.send(f"Arquivo {filename} deletado com sucesso.\n".encode())
+                            except FileNotFoundError:
+                                client_socket.send(f"Arquivo {filename} não encontrado.\n".encode())
+                            except Exception as e:
+                                client_socket.send(f"Erro ao deletar arquivo: {e}\n".encode())
+
+                        elif action == "EXIT":
+                            break
+                        else:
+                            client_socket.send("Comando inválido.\n".encode())
+
+                    except Exception as e:
+                        print(f"Erro: {e}")
+                        break
             else:
-                client_socket.send("Comando inválido.\n".encode())
+                client_socket.send("Senha incorreta!\n".encode())
+        else:
+            client_socket.send("Usuário não encontrado!\n".encode())
 
-        except Exception as e:
-            print(f"Erro: {e}")
-            break
 
     print(f"[+] Conexão encerrada com {address[0]}:{address[1]}")
     client_socket.close()
 
-
 def main():
     HOST = "127.0.0.1"
     PORT = 65432
+
+    global USERS
+    USERS = load_users(USERS_FILE)
 
     if not os.path.exists(FILES_DIR):
         os.makedirs(FILES_DIR)
